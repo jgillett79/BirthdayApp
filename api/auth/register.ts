@@ -12,8 +12,16 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     } as ApiResponse);
   }
 
+  console.log('Registration attempt started');
+  console.log('Environment check:', {
+    hasPostgresUrl: !!process.env.POSTGRES_URL,
+    hasJwtSecret: !!process.env.JWT_SECRET,
+    nodeEnv: process.env.NODE_ENV
+  });
+
   try {
     const { email, password, name } = req.body as UserRegistration;
+    console.log('Registration request for email:', email);
 
     // Validate input
     if (!email || !password || !name) {
@@ -80,11 +88,17 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         token,
       } as AuthResponse,
     } as ApiResponse<AuthResponse>);
-  } catch (error) {
-    console.error('Registration error:', error);
+  } catch (error: any) {
+    console.error('Registration error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name
+    });
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
+      details: process.env.NODE_ENV === 'production' ? undefined : error.message
     } as ApiResponse);
   }
 }
