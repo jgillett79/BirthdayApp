@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getEvents, createEvent, deleteEvent } from '../services/events';
+import { getEvents, createEvent, updateEvent, deleteEvent } from '../services/events';
 import { getFamilyMembers } from '../services/familyMembers';
-import { Plus, Trash2, Calendar, AlertCircle } from 'lucide-react';
-import { EventType, CreateEvent } from '@shared/types';
+import { Plus, Trash2, Calendar, AlertCircle, Pencil } from 'lucide-react';
+import { EventType, CreateEvent, Event } from '@shared/types';
 import { format, parseISO } from 'date-fns';
 
 export default function Events() {
   const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const queryClient = useQueryClient();
 
   const { data: events, isLoading, error } = useQuery({
@@ -29,6 +30,17 @@ export default function Events() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateEvent> }) =>
+      updateEvent(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['upcomingEvents'] });
+      setShowModal(false);
+      setEditingEvent(null);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteEvent,
     onSuccess: () => {
@@ -36,6 +48,16 @@ export default function Events() {
       queryClient.invalidateQueries({ queryKey: ['upcomingEvents'] });
     },
   });
+
+  const handleEdit = (event: Event) => {
+    setEditingEvent(event);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingEvent(null);
+  };
 
   if (isLoading) {
     return (
@@ -121,13 +143,23 @@ export default function Events() {
                       {event.relationshipToMember && ` (${event.relationshipToMember})`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => deleteMutation.mutate(event.id)}
-                        className="text-red-600 hover:text-red-900"
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => handleEdit(event)}
+                          className="text-primary-600 hover:text-primary-900"
+                          title="Edit event"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteMutation.mutate(event.id)}
+                          className="text-red-600 hover:text-red-900"
+                          disabled={deleteMutation.isPending}
+                          title="Delete event"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -139,10 +171,17 @@ export default function Events() {
 
       {showModal && (
         <EventModal
-          onClose={() => setShowModal(false)}
-          onSubmit={(data) => createMutation.mutate(data)}
+          onClose={handleCloseModal}
+          onSubmit={(data) => {
+            if (editingEvent) {
+              updateMutation.mutate({ id: editingEvent.id, data });
+            } else {
+              createMutation.mutate(data);
+            }
+          }}
           familyMembers={familyMembers || []}
-          isLoading={createMutation.isPending}
+          isLoading={createMutation.isPending || updateMutation.isPending}
+          editingEvent={editingEvent}
         />
       )}
     </div>
@@ -154,19 +193,21 @@ function EventModal({
   onSubmit,
   familyMembers,
   isLoading,
+  editingEvent,
 }: {
   onClose: () => void;
   onSubmit: (data: CreateEvent) => void;
   familyMembers: any[];
   isLoading: boolean;
+  editingEvent?: Event | null;
 }) {
   const [formData, setFormData] = useState({
-    name: '',
-    date: '',
-    type: EventType.BIRTHDAY,
-    familyMemberId: '',
-    relationshipToMember: '',
-    notes: '',
+    name: editingEvent?.name || '',
+    date: editingEvent?.date ? format(parseISO(editingEvent.date.toString()), 'yyyy-MM-dd') : '',
+    type: editingEvent?.type || EventType.BIRTHDAY,
+    familyMemberId: editingEvent?.familyMemberId || '',
+    relationshipToMember: editingEvent?.relationshipToMember || '',
+    notes: editingEvent?.notes || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -183,7 +224,9 @@ function EventModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Add New Event</h2>
+        <h2 className="text-2xl font-bold mb-4">
+          {editingEvent ? 'Edit Event' : 'Add New Event'}
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="label">Name</label>
@@ -273,7 +316,7 @@ function EventModal({
               className="btn-primary flex-1"
               disabled={isLoading}
             >
-              {isLoading ? 'Adding...' : 'Add Event'}
+              {isLoading ? (editingEvent ? 'Updating...' : 'Adding...') : (editingEvent ? 'Update Event' : 'Add Event')}
             </button>
           </div>
         </form>
