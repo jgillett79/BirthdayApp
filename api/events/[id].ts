@@ -1,5 +1,5 @@
 import { VercelResponse } from '@vercel/node';
-import { sql } from '../db';
+import { sql, query } from '../db';
 import { authenticate, AuthenticatedRequest, cors } from '../middleware/auth';
 import { Event, UpdateEvent, ApiResponse } from '../../shared/types';
 
@@ -125,7 +125,7 @@ async function updateEvent(req: AuthenticatedRequest, res: VercelResponse, id: s
 
     values.push(id, req.userId);
 
-    const result = await sql.query(
+    const result = await query(
       `UPDATE events
        SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
        WHERE id = $${paramIndex++} AND user_id = $${paramIndex}
