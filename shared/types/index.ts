@@ -53,6 +53,7 @@ export interface Event {
   name: string;
   date: Date; // MM-DD format or full date
   type: EventType;
+  birthYear?: number; // Optional: year of birth for age calculation
   familyMemberId?: string; // Optional: which family member this is related to
   relationshipToMember?: string; // e.g., "friend", "colleague"
   notes?: string;
@@ -67,6 +68,7 @@ export interface CreateEvent {
   name: string;
   date: Date;
   type: EventType;
+  birthYear?: number;
   familyMemberId?: string;
   relationshipToMember?: string;
   notes?: string;
