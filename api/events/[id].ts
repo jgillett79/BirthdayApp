@@ -51,6 +51,7 @@ async function getEvent(req: AuthenticatedRequest, res: VercelResponse, id: stri
         name: event.name,
         date: event.date,
         type: event.type,
+        birthYear: event.birth_year,
         familyMemberId: event.family_member_id,
         relationshipToMember: event.relationship_to_member,
         notes: event.notes,
@@ -90,6 +91,10 @@ async function updateEvent(req: AuthenticatedRequest, res: VercelResponse, id: s
     if (eventData.type !== undefined) {
       updates.push(`type = $${paramIndex++}`);
       values.push(eventData.type);
+    }
+    if (eventData.birthYear !== undefined) {
+      updates.push(`birth_year = $${paramIndex++}`);
+      values.push(eventData.birthYear);
     }
     if (eventData.familyMemberId !== undefined) {
       updates.push(`family_member_id = $${paramIndex++}`);
@@ -150,6 +155,7 @@ async function updateEvent(req: AuthenticatedRequest, res: VercelResponse, id: s
         name: event.name,
         date: event.date,
         type: event.type,
+        birthYear: event.birth_year,
         familyMemberId: event.family_member_id,
         relationshipToMember: event.relationship_to_member,
         notes: event.notes,

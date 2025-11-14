@@ -2,6 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { getUpcomingEvents } from '../services/events';
 import { Calendar, Gift, AlertCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { EventType } from '@shared/types';
+
+// Helper function to calculate age
+const calculateAge = (birthYear: number): number => {
+  const currentYear = new Date().getFullYear();
+  return currentYear - birthYear;
+};
 
 export default function Dashboard() {
   const { data: upcomingEvents, isLoading, error } = useQuery({
@@ -101,6 +108,7 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-gray-900">{event.name}</h3>
                     <p className="text-sm text-gray-600">
                       {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                      {event.type === EventType.BIRTHDAY && event.birthYear && ` • Turning ${calculateAge(event.birthYear)}`}
                       {event.familyMember && ` • ${event.familyMember.name}'s ${event.relationshipToMember}`}
                     </p>
                   </div>

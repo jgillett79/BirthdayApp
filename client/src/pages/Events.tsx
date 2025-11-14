@@ -6,6 +6,12 @@ import { Plus, Trash2, Calendar, AlertCircle, Pencil, Search, Filter } from 'luc
 import { EventType, CreateEvent, Event } from '@shared/types';
 import { format, parseISO } from 'date-fns';
 
+// Helper function to calculate age
+const calculateAge = (birthYear: number): number => {
+  const currentYear = new Date().getFullYear();
+  return currentYear - birthYear;
+};
+
 export default function Events() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -224,7 +230,12 @@ export default function Events() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {format(parseISO(event.date.toString()), 'MMM dd, yyyy')}
+                      <div>{format(parseISO(event.date.toString()), 'MMM dd, yyyy')}</div>
+                      {event.type === EventType.BIRTHDAY && event.birthYear && (
+                        <div className="text-xs text-gray-500">
+                          Turning {calculateAge(event.birthYear)} years old
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800">
@@ -298,6 +309,7 @@ function EventModal({
     name: editingEvent?.name || '',
     date: editingEvent?.date ? format(parseISO(editingEvent.date.toString()), 'yyyy-MM-dd') : '',
     type: editingEvent?.type || EventType.BIRTHDAY,
+    birthYear: editingEvent?.birthYear?.toString() || '',
     familyMemberId: editingEvent?.familyMemberId || '',
     relationshipToMember: editingEvent?.relationshipToMember || '',
     notes: editingEvent?.notes || '',
@@ -308,6 +320,7 @@ function EventModal({
     onSubmit({
       ...formData,
       date: new Date(formData.date),
+      birthYear: formData.birthYear ? parseInt(formData.birthYear) : undefined,
       familyMemberId: formData.familyMemberId || undefined,
       relationshipToMember: formData.relationshipToMember || undefined,
       notes: formData.notes || undefined,
@@ -356,6 +369,21 @@ function EventModal({
               <option value={EventType.OTHER}>Other</option>
             </select>
           </div>
+
+          {formData.type === EventType.BIRTHDAY && (
+            <div>
+              <label className="label">Birth Year (Optional - for age calculation)</label>
+              <input
+                type="number"
+                className="input"
+                value={formData.birthYear}
+                onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
+                placeholder="1990"
+                min="1900"
+                max={new Date().getFullYear()}
+              />
+            </div>
+          )}
 
           <div>
             <label className="label">Family Member (Optional)</label>
