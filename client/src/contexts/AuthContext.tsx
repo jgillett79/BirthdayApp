@@ -24,15 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
-      loadUser(storedToken);
+      loadUser();
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadUser = async (authToken: string) => {
+  const loadUser = async () => {
     try {
-      const userData = await authService.getCurrentUser(authToken);
+      const userData = await authService.getCurrentUser();
       setUser(userData);
     } catch (error) {
       console.error('Failed to load user:', error);

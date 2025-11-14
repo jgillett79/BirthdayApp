@@ -1,4 +1,4 @@
-import { User, UserLogin, UserRegistration, AuthResponse } from '@shared/types';
+import { User, AuthResponse } from '@shared/types';
 import { api } from './api';
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
@@ -13,6 +13,6 @@ export async function register(
   return api.post<AuthResponse>('/auth/register', { email, password, name });
 }
 
-export async function getCurrentUser(token: string): Promise<User> {
+export async function getCurrentUser(): Promise<User> {
   return api.get<User>('/auth/me');
 }
