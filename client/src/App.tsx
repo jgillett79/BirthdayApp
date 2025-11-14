@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
 import FamilyMembers from './pages/FamilyMembers';
+import GiftIdeas from './pages/GiftIdeas';
 import Layout from './components/Layout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="events" element={<Events />} />
             <Route path="family" element={<FamilyMembers />} />
+            <Route path="gifts" element={<GiftIdeas />} />
           </Route>
         </Routes>
       </AuthProvider>

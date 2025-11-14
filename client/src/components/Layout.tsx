@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, Calendar, Users, LogOut, Menu, X } from 'lucide-react';
+import { Home, Calendar, Users, Gift, LogOut, Menu, X } from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -52,6 +52,17 @@ export default function Layout() {
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Family
+                </Link>
+                <Link
+                  to="/gifts"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    isActive('/gifts')
+                      ? 'border-primary-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  }`}
+                >
+                  <Gift className="w-4 h-4 mr-2" />
+                  Gifts
                 </Link>
               </div>
             </div>
@@ -119,6 +130,18 @@ export default function Layout() {
                 >
                   <Users className="w-5 h-5 mr-3" />
                   Family
+                </Link>
+                <Link
+                  to="/gifts"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center px-4 py-3 text-base font-medium ${
+                    isActive('/gifts')
+                      ? 'bg-primary-50 border-l-4 border-primary-500 text-primary-700'
+                      : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Gift className="w-5 h-5 mr-3" />
+                  Gifts
                 </Link>
               </div>
               <div className="pt-4 pb-3 border-t border-gray-200">
