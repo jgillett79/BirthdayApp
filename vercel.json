@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:client",
+  "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
   "devCommand": "npm run dev:client",
-  "installCommand": "npm run install:all",
+  "installCommand": "npm install",
   "framework": null,
   "rewrites": [
     {
