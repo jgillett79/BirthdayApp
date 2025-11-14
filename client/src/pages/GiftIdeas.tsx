@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getGiftIdeas, createGiftIdea, updateGiftIdea, deleteGiftIdea } from '../services/gifts';
+import { getGiftIdeas, createGiftIdea, updateGiftIdea, deleteGiftIdea, getGiftSuggestions } from '../services/gifts';
 import { getEvents } from '../services/events';
-import { Plus, Trash2, Gift, AlertCircle, Pencil, Check, ExternalLink } from 'lucide-react';
-import { CreateGiftIdea, GiftIdea, Event } from '@shared/types';
+import { Plus, Trash2, Gift, AlertCircle, Pencil, Check, ExternalLink, Sparkles } from 'lucide-react';
+import { CreateGiftIdea, GiftIdea, Event, GiftSuggestion } from '@shared/types';
 
 export default function GiftIdeas() {
   const [showModal, setShowModal] = useState(false);
+  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [editingGift, setEditingGift] = useState<GiftIdea | null>(null);
   const [filterEventId, setFilterEventId] = useState<string>('all');
   const queryClient = useQueryClient();
@@ -104,13 +105,22 @@ export default function GiftIdeas() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Gift Ideas</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Gift Idea
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setShowSuggestionsModal(true)}
+            className="btn-secondary flex items-center"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Get AI Suggestions
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Gift Idea
+          </button>
+        </div>
       </div>
 
       <div className="card">
@@ -248,6 +258,21 @@ export default function GiftIdeas() {
           editingGift={editingGift}
         />
       )}
+
+      {showSuggestionsModal && (
+        <AISuggestionsModal
+          onClose={() => setShowSuggestionsModal(false)}
+          onSaveSuggestion={(suggestion, eventId) => {
+            createMutation.mutate({
+              eventId,
+              idea: suggestion.idea,
+              price: suggestion.estimatedPrice,
+              notes: `${suggestion.description}\n\nReasoning: ${suggestion.reasoning}`,
+            });
+          }}
+          events={events || []}
+        />
+      )}
     </div>
   );
 }
@@ -373,6 +398,238 @@ function GiftIdeaModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function AISuggestionsModal({
+  onClose,
+  onSaveSuggestion,
+  events,
+}: {
+  onClose: () => void;
+  onSaveSuggestion: (suggestion: GiftSuggestion, eventId: string) => void;
+  events: Event[];
+}) {
+  const [step, setStep] = useState<'form' | 'results'>('form');
+  const [suggestions, setSuggestions] = useState<GiftSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({
+    eventId: '',
+    personName: '',
+    age: '',
+    interests: '',
+    relationship: '',
+    priceMin: '',
+    priceMax: '',
+  });
+
+  const handleGetSuggestions = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const event = events.find(e => e.id === formData.eventId);
+      const suggestionsData = await getGiftSuggestions({
+        eventId: formData.eventId,
+        personName: formData.personName || event?.name || 'Person',
+        age: formData.age ? parseInt(formData.age) : undefined,
+        interests: formData.interests ? formData.interests.split(',').map(i => i.trim()) : undefined,
+        relationship: formData.relationship || undefined,
+        priceRange: formData.priceMin && formData.priceMax ? {
+          min: parseFloat(formData.priceMin),
+          max: parseFloat(formData.priceMax),
+        } : undefined,
+      });
+
+      setSuggestions(suggestionsData);
+      setStep('results');
+    } catch (err) {
+      setError('Failed to get suggestions. Please try again.');
+      console.error('AI suggestions error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveSuggestion = (suggestion: GiftSuggestion) => {
+    onSaveSuggestion(suggestion, formData.eventId);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+        {step === 'form' ? (
+          <>
+            <h2 className="text-2xl font-bold mb-4 flex items-center">
+              <Sparkles className="w-6 h-6 mr-2 text-primary-600" />
+              Get AI Gift Suggestions
+            </h2>
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 flex items-center">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleGetSuggestions} className="space-y-4">
+              <div>
+                <label className="label">Event</label>
+                <select
+                  required
+                  className="input"
+                  value={formData.eventId}
+                  onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
+                >
+                  <option value="">Select an event</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="label">Person's Name (Optional)</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={formData.personName}
+                  onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div>
+                <label className="label">Age (Optional)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="150"
+                  className="input"
+                  value={formData.age}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  placeholder="25"
+                />
+              </div>
+
+              <div>
+                <label className="label">Interests (Optional, comma-separated)</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={formData.interests}
+                  onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
+                  placeholder="reading, hiking, cooking"
+                />
+              </div>
+
+              <div>
+                <label className="label">Relationship (Optional)</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={formData.relationship}
+                  onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+                  placeholder="friend, colleague, family"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label">Min Price (Optional)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="input"
+                    value={formData.priceMin}
+                    onChange={(e) => setFormData({ ...formData, priceMin: e.target.value })}
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className="label">Max Price (Optional)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="input"
+                    value={formData.priceMax}
+                    onChange={(e) => setFormData({ ...formData, priceMax: e.target.value })}
+                    placeholder="50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="btn-secondary flex-1"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary flex-1"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Getting Suggestions...' : 'Get Suggestions'}
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold mb-4 flex items-center">
+              <Sparkles className="w-6 h-6 mr-2 text-primary-600" />
+              AI Gift Suggestions
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              {suggestions.map((suggestion, index) => (
+                <div key={index} className="p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg text-gray-900">{suggestion.idea}</h3>
+                    <span className="text-primary-600 font-semibold">${suggestion.estimatedPrice.toFixed(2)}</span>
+                  </div>
+                  <p className="text-gray-700 mb-2">{suggestion.description}</p>
+                  <p className="text-sm text-gray-600 italic">💡 {suggestion.reasoning}</p>
+                  <button
+                    onClick={() => handleSaveSuggestion(suggestion)}
+                    className="mt-3 btn-primary text-sm"
+                  >
+                    Save to Gift Ideas
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setStep('form')}
+                className="btn-secondary flex-1"
+              >
+                Get More Suggestions
+              </button>
+              <button
+                onClick={onClose}
+                className="btn-primary flex-1"
+              >
+                Done
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
