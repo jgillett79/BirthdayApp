@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvents, createEvent, updateEvent, deleteEvent } from '../services/events';
 import { getFamilyMembers } from '../services/familyMembers';
-import { Plus, Trash2, Calendar, AlertCircle, Pencil } from 'lucide-react';
+import { Plus, Trash2, Calendar, AlertCircle, Pencil, Search, Filter } from 'lucide-react';
 import { EventType, CreateEvent, Event } from '@shared/types';
 import { format, parseISO } from 'date-fns';
 
 export default function Events() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterFamilyMember, setFilterFamilyMember] = useState<string>('all');
   const queryClient = useQueryClient();
 
   const { data: events, isLoading, error } = useQuery({
@@ -59,6 +62,27 @@ export default function Events() {
     setEditingEvent(null);
   };
 
+  // Filter and search events
+  const filteredEvents = useMemo(() => {
+    if (!events) return [];
+
+    return events.filter(event => {
+      // Search filter
+      const matchesSearch = searchQuery === '' ||
+        event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.notes?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Type filter
+      const matchesType = filterType === 'all' || event.type === filterType;
+
+      // Family member filter
+      const matchesFamilyMember = filterFamilyMember === 'all' ||
+        event.familyMemberId === filterFamilyMember;
+
+      return matchesSearch && matchesType && matchesFamilyMember;
+    });
+  }, [events, searchQuery, filterType, filterFamilyMember]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -89,6 +113,59 @@ export default function Events() {
         </button>
       </div>
 
+      {/* Search and Filters */}
+      <div className="card">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search events..."
+              className="input pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Type Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              className="input pl-10"
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+            >
+              <option value="all">All Types</option>
+              <option value="birthday">Birthdays</option>
+              <option value="anniversary">Anniversaries</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          {/* Family Member Filter */}
+          <div>
+            <select
+              className="input"
+              value={filterFamilyMember}
+              onChange={(e) => setFilterFamilyMember(e.target.value)}
+            >
+              <option value="all">All Family Members</option>
+              {familyMembers?.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div className="mt-3 text-sm text-gray-600">
+          Showing {filteredEvents.length} of {events?.length || 0} events
+        </div>
+      </div>
+
       <div className="card">
         {!events || events.length === 0 ? (
           <div className="text-center py-12">
@@ -97,6 +174,22 @@ export default function Events() {
             <p className="text-gray-500 mb-4">Get started by adding your first birthday or anniversary</p>
             <button onClick={() => setShowModal(true)} className="btn-primary">
               Add Your First Event
+            </button>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="text-center py-12">
+            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No events match your filters</h3>
+            <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setFilterType('all');
+                setFilterFamilyMember('all');
+              }}
+              className="btn-secondary"
+            >
+              Clear Filters
             </button>
           </div>
         ) : (
@@ -122,7 +215,7 @@ export default function Events() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {events.map((event) => (
+                {filteredEvents.map((event) => (
                   <tr key={event.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{event.name}</div>
