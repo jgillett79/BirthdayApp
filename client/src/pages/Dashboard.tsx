@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { getUpcomingEvents } from '../services/events';
-import { Calendar, Gift, AlertCircle } from 'lucide-react';
+import { getUpcomingEvents, getEvents } from '../services/events';
+import { getGiftIdeas } from '../services/gifts';
+import { getFamilyMembers } from '../services/familyMembers';
+import { Calendar, Gift, AlertCircle, Users, Cake, Heart, Plus } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { EventType } from '@shared/types';
+import { useNavigate } from 'react-router-dom';
 
 // Helper function to calculate age
 const calculateAge = (birthYear: number): number => {
@@ -11,10 +14,37 @@ const calculateAge = (birthYear: number): number => {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const { data: upcomingEvents, isLoading, error } = useQuery({
     queryKey: ['upcomingEvents'],
     queryFn: () => getUpcomingEvents(30),
   });
+
+  const { data: allEvents } = useQuery({
+    queryKey: ['events'],
+    queryFn: getEvents,
+  });
+
+  const { data: gifts } = useQuery({
+    queryKey: ['gifts'],
+    queryFn: () => getGiftIdeas(),
+  });
+
+  const { data: familyMembers } = useQuery({
+    queryKey: ['familyMembers'],
+    queryFn: getFamilyMembers,
+  });
+
+  // Calculate statistics
+  const stats = {
+    totalEvents: allEvents?.length || 0,
+    birthdays: allEvents?.filter(e => e.type === EventType.BIRTHDAY).length || 0,
+    anniversaries: allEvents?.filter(e => e.type === EventType.ANNIVERSARY).length || 0,
+    totalGifts: gifts?.length || 0,
+    purchasedGifts: gifts?.filter(g => g.purchased).length || 0,
+    familyCount: familyMembers?.length || 0,
+  };
 
   if (isLoading) {
     return (
@@ -36,9 +66,71 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome back! Here's what's happening.</p>
+        </div>
+        <button
+          onClick={() => navigate('/events')}
+          className="btn-primary flex items-center"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Event
+        </button>
       </div>
 
+      {/* Main Statistics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-primary-100 text-primary-600">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Events</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalEvents}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-pink-100 text-pink-600">
+              <Cake className="w-6 h-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Birthdays</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.birthdays}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-red-100 text-red-600">
+              <Heart className="w-6 h-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Anniversaries</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.anniversaries}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Family Members</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.familyCount}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="card">
           <div className="flex items-center">
@@ -55,7 +147,7 @@ export default function Dashboard() {
         <div className="card">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100 text-green-600">
-              <Gift className="w-6 h-6" />
+              <Calendar className="w-6 h-6" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">This Week</p>
@@ -78,6 +170,56 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+              <Gift className="w-6 h-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Gift Ideas</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.purchasedGifts}/{stats.totalGifts}
+              </p>
+              <p className="text-xs text-gray-500">purchased</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="card">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
+            onClick={() => navigate('/events')}
+            className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Calendar className="w-6 h-6 text-primary-600 mb-2" />
+            <span className="text-sm font-medium text-gray-900">Add Event</span>
+          </button>
+          <button
+            onClick={() => navigate('/family')}
+            className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Users className="w-6 h-6 text-primary-600 mb-2" />
+            <span className="text-sm font-medium text-gray-900">Add Family</span>
+          </button>
+          <button
+            onClick={() => navigate('/gifts')}
+            className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Gift className="w-6 h-6 text-primary-600 mb-2" />
+            <span className="text-sm font-medium text-gray-900">Gift Ideas</span>
+          </button>
+          <button
+            onClick={() => navigate('/events')}
+            className="flex flex-col items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Calendar className="w-6 h-6 text-primary-600 mb-2" />
+            <span className="text-sm font-medium text-gray-900">View All</span>
+          </button>
         </div>
       </div>
 
