@@ -20,8 +20,12 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
       WITH upcoming AS (
         SELECT
           e.*,
+          fm.id as family_member_id_full,
+          fm.user_id as family_member_user_id,
           fm.name as family_member_name,
           fm.relationship as family_member_relationship,
+          fm.created_at as family_member_created_at,
+          fm.updated_at as family_member_updated_at,
           CASE
             WHEN e.recurring_yearly THEN
               -- Calculate next occurrence for recurring events
@@ -51,6 +55,7 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
       name: row.name,
       date: row.date,
       type: row.type,
+      birthYear: row.birth_year,
       familyMemberId: row.family_member_id,
       relationshipToMember: row.relationship_to_member,
       notes: row.notes,
@@ -61,9 +66,12 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
       updatedAt: row.updated_at,
       daysUntil: parseInt(row.days_until, 10),
       familyMember: row.family_member_name ? {
-        id: row.family_member_id,
+        id: row.family_member_id_full,
+        userId: row.family_member_user_id,
         name: row.family_member_name,
         relationship: row.family_member_relationship,
+        createdAt: row.family_member_created_at,
+        updatedAt: row.family_member_updated_at,
       } : undefined,
     }));
 

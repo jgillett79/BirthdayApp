@@ -6,7 +6,7 @@ export async function getEvents(): Promise<Event[]> {
 }
 
 export async function getEvent(id: string): Promise<Event> {
-  return api.get<Event>(`/events/${id}`);
+  return api.get<Event>(`/events?id=${id}`);
 }
 
 export async function createEvent(event: CreateEvent): Promise<Event> {
@@ -14,11 +14,11 @@ export async function createEvent(event: CreateEvent): Promise<Event> {
 }
 
 export async function updateEvent(id: string, event: Partial<UpdateEvent>): Promise<Event> {
-  return api.put<Event>(`/events/${id}`, event);
+  return api.put<Event>(`/events?id=${id}`, event);
 }
 
 export async function deleteEvent(id: string): Promise<void> {
-  return api.delete(`/events/${id}`);
+  return api.delete(`/events?id=${id}`);
 }
 
 export async function getUpcomingEvents(days: number = 30): Promise<UpcomingEvent[]> {

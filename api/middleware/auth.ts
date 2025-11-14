@@ -10,7 +10,7 @@ export interface AuthenticatedRequest extends VercelRequest {
  * Middleware to authenticate requests
  */
 export function authenticate(
-  handler: (req: AuthenticatedRequest, res: VercelResponse) => Promise<void>
+  handler: (req: AuthenticatedRequest, res: VercelResponse) => Promise<any>
 ) {
   return async (req: AuthenticatedRequest, res: VercelResponse) => {
     try {

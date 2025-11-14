@@ -11,11 +11,11 @@ export async function createGiftIdea(gift: CreateGiftIdea): Promise<GiftIdea> {
 }
 
 export async function updateGiftIdea(id: string, data: Partial<CreateGiftIdea> & { purchased?: boolean }): Promise<GiftIdea> {
-  return api.put<GiftIdea>(`/gifts/${id}`, data);
+  return api.put<GiftIdea>(`/gifts?id=${id}`, data);
 }
 
 export async function deleteGiftIdea(id: string): Promise<void> {
-  return api.delete(`/gifts/${id}`);
+  return api.delete(`/gifts?id=${id}`);
 }
 
 export async function getGiftSuggestions(
