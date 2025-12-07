@@ -2,8 +2,27 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { User } from '../../shared/types';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
+// Get JWT_SECRET from environment with validation
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '7d';
+
+// Validate JWT_SECRET is set and has minimum length
+if (!JWT_SECRET) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    console.error('❌ CRITICAL: JWT_SECRET environment variable is not set!');
+    console.error('   This is required for secure token generation and verification.');
+    console.error('   Set JWT_SECRET to a strong random string before deploying to production.');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  WARNING: JWT_SECRET not set. Using insecure development default.');
+    console.warn('   This WILL cause authentication to fail if you restart the server.');
+    console.warn('   Set JWT_SECRET environment variable for consistent token verification.');
+  }
+}
+
+// Use the secret if provided, otherwise use a development default
+const FINAL_JWT_SECRET = JWT_SECRET || 'dev-insecure-secret-do-not-use-in-production';
 
 export interface JwtPayload {
   userId: string;
@@ -37,7 +56,7 @@ export function generateToken(user: User): string {
     email: user.email,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, FINAL_JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
 }
@@ -47,7 +66,7 @@ export function generateToken(user: User): string {
  */
 export function verifyToken(token: string): JwtPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return jwt.verify(token, FINAL_JWT_SECRET) as JwtPayload;
   } catch (error) {
     throw new Error('Invalid or expired token');
   }

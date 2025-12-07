@@ -67,13 +67,48 @@ export async function initDatabase() {
   try {
     const fs = require('fs');
     const path = require('path');
-    const schemaPath = path.join(__dirname, 'schema.sql');
+
+    // Get the directory where this file is located
+    const currentDir = __dirname || process.cwd();
+    const schemaPath = path.join(currentDir, 'schema.sql');
+
+    // Verify schema file exists
+    if (!fs.existsSync(schemaPath)) {
+      throw new Error(`Schema file not found at ${schemaPath}`);
+    }
+
     const schema = fs.readFileSync(schemaPath, 'utf8');
 
-    await query(schema);
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Error initializing database:', error);
+    // Execute schema as a single statement
+    await pool.query(schema);
+    console.log('✅ Database schema initialized successfully');
+
+  } catch (error: any) {
+    // If it's a "table already exists" error, that's fine - it means the DB is already initialized
+    if (error.code === '42P07') {
+      console.log('✅ Database tables already exist');
+      return;
+    }
+    console.error('❌ Error initializing database:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Initialize database on startup if needed
+ */
+export async function ensureDatabaseInitialized() {
+  try {
+    // Test database connection
+    const result = await query('SELECT 1');
+    if (result) {
+      console.log('✅ Database connection successful');
+
+      // Try to initialize schema (idempotent due to IF NOT EXISTS)
+      await initDatabase();
+    }
+  } catch (error: any) {
+    console.error('❌ Database initialization failed:', error.message);
     throw error;
   }
 }

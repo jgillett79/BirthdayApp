@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS events (
   name VARCHAR(255) NOT NULL,
   date DATE NOT NULL,
   type VARCHAR(50) NOT NULL CHECK (type IN ('birthday', 'anniversary', 'other')),
+  birth_year INTEGER,
   family_member_id UUID REFERENCES family_members(id) ON DELETE SET NULL,
   relationship_to_member VARCHAR(100),
   notes TEXT,

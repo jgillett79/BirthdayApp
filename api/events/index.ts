@@ -1,9 +1,9 @@
-import { VercelResponse } from '@vercel/node';
+import { Response } from 'express';
 import { sql, query } from '../db';
 import { authenticate, AuthenticatedRequest, cors } from '../middleware/auth';
 import { Event, CreateEvent, UpdateEvent, ApiResponse } from '../../shared/types';
 
-async function handler(req: AuthenticatedRequest, res: VercelResponse) {
+async function handler(req: AuthenticatedRequest, res: Response) {
   const { id } = req.query;
 
   // Handle single event operations when id is provided
@@ -35,7 +35,7 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function getEvents(req: AuthenticatedRequest, res: VercelResponse) {
+async function getEvents(req: AuthenticatedRequest, res: Response) {
   try {
     const result = await sql`
       SELECT
@@ -78,7 +78,7 @@ async function getEvents(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function createEvent(req: AuthenticatedRequest, res: VercelResponse) {
+async function createEvent(req: AuthenticatedRequest, res: Response) {
   try {
     const eventData = req.body as CreateEvent;
 
@@ -149,7 +149,7 @@ async function createEvent(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function getEvent(req: AuthenticatedRequest, res: VercelResponse, id: string) {
+async function getEvent(req: AuthenticatedRequest, res: Response, id: string) {
   try {
     const result = await sql`
       SELECT * FROM events
@@ -193,7 +193,7 @@ async function getEvent(req: AuthenticatedRequest, res: VercelResponse, id: stri
   }
 }
 
-async function updateEvent(req: AuthenticatedRequest, res: VercelResponse, id: string) {
+async function updateEvent(req: AuthenticatedRequest, res: Response, id: string) {
   try {
     const eventData = req.body as Partial<UpdateEvent>;
 
@@ -297,7 +297,7 @@ async function updateEvent(req: AuthenticatedRequest, res: VercelResponse, id: s
   }
 }
 
-async function deleteEvent(req: AuthenticatedRequest, res: VercelResponse, id: string) {
+async function deleteEvent(req: AuthenticatedRequest, res: Response, id: string) {
   try {
     const result = await sql`
       DELETE FROM events

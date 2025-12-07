@@ -1,8 +1,8 @@
-import { VercelResponse } from '@vercel/node';
+import { Response } from 'express';
 import { authenticate, AuthenticatedRequest, cors } from '../middleware/auth';
 import { GiftSuggestionRequest, GiftSuggestion, ApiResponse } from '../../shared/types';
 
-async function handler(req: AuthenticatedRequest, res: VercelResponse) {
+async function handler(req: AuthenticatedRequest, res: Response) {
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,

@@ -1,10 +1,10 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import { Request, Response } from 'express';
 import { sql } from '../db';
 import { hashPassword, generateToken, isValidEmail, isValidPassword } from '../utils/auth';
 import { UserRegistration, AuthResponse, ApiResponse } from '../../shared/types';
 import { cors } from '../middleware/auth';
 
-async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: Request, res: Response) {
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,

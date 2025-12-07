@@ -1,9 +1,9 @@
-import { VercelResponse } from '@vercel/node';
+import { Response } from 'express';
 import { sql } from '../db';
 import { authenticate, AuthenticatedRequest, cors } from '../middleware/auth';
 import { FamilyMember, CreateFamilyMember, ApiResponse } from '../../shared/types';
 
-async function handler(req: AuthenticatedRequest, res: VercelResponse) {
+async function handler(req: AuthenticatedRequest, res: Response) {
   if (req.method === 'GET') {
     return getFamilyMembers(req, res);
   } else if (req.method === 'POST') {
@@ -16,7 +16,7 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function getFamilyMembers(req: AuthenticatedRequest, res: VercelResponse) {
+async function getFamilyMembers(req: AuthenticatedRequest, res: Response) {
   try {
     const result = await sql`
       SELECT * FROM family_members
@@ -47,7 +47,7 @@ async function getFamilyMembers(req: AuthenticatedRequest, res: VercelResponse) 
   }
 }
 
-async function createFamilyMember(req: AuthenticatedRequest, res: VercelResponse) {
+async function createFamilyMember(req: AuthenticatedRequest, res: Response) {
   try {
     const memberData = req.body as CreateFamilyMember;
 

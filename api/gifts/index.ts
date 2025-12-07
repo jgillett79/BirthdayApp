@@ -1,9 +1,9 @@
-import { VercelResponse } from '@vercel/node';
+import { Response } from 'express';
 import { sql, query } from '../db';
 import { authenticate, AuthenticatedRequest, cors } from '../middleware/auth';
 import { GiftIdea, CreateGiftIdea, ApiResponse } from '../../shared/types';
 
-async function handler(req: AuthenticatedRequest, res: VercelResponse) {
+async function handler(req: AuthenticatedRequest, res: Response) {
   const { id } = req.query;
 
   // Handle single gift operations when id is provided
@@ -35,7 +35,7 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function getGiftIdeas(req: AuthenticatedRequest, res: VercelResponse) {
+async function getGiftIdeas(req: AuthenticatedRequest, res: Response) {
   try {
     const { eventId } = req.query;
 
@@ -80,7 +80,7 @@ async function getGiftIdeas(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function createGiftIdea(req: AuthenticatedRequest, res: VercelResponse) {
+async function createGiftIdea(req: AuthenticatedRequest, res: Response) {
   try {
     const giftData = req.body as CreateGiftIdea;
 
@@ -130,7 +130,7 @@ async function createGiftIdea(req: AuthenticatedRequest, res: VercelResponse) {
   }
 }
 
-async function getGiftIdea(req: AuthenticatedRequest, res: VercelResponse, id: string) {
+async function getGiftIdea(req: AuthenticatedRequest, res: Response, id: string) {
   try {
     const result = await sql`
       SELECT * FROM gift_ideas
@@ -170,7 +170,7 @@ async function getGiftIdea(req: AuthenticatedRequest, res: VercelResponse, id: s
   }
 }
 
-async function updateGiftIdea(req: AuthenticatedRequest, res: VercelResponse, id: string) {
+async function updateGiftIdea(req: AuthenticatedRequest, res: Response, id: string) {
   try {
     const giftData = req.body as Partial<GiftIdea>;
 
@@ -250,7 +250,7 @@ async function updateGiftIdea(req: AuthenticatedRequest, res: VercelResponse, id
   }
 }
 
-async function deleteGiftIdea(req: AuthenticatedRequest, res: VercelResponse, id: string) {
+async function deleteGiftIdea(req: AuthenticatedRequest, res: Response, id: string) {
   try {
     const result = await sql`
       DELETE FROM gift_ideas

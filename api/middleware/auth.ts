@@ -1,7 +1,7 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import { Request, Response, NextFunction } from 'express';
 import { verifyToken, extractToken } from '../utils/auth';
 
-export interface AuthenticatedRequest extends VercelRequest {
+export interface AuthenticatedRequest extends Request {
   userId?: string;
   userEmail?: string;
 }
@@ -10,9 +10,9 @@ export interface AuthenticatedRequest extends VercelRequest {
  * Middleware to authenticate requests
  */
 export function authenticate(
-  handler: (req: AuthenticatedRequest, res: VercelResponse) => Promise<any>
+  handler: (req: AuthenticatedRequest, res: Response) => Promise<any>
 ) {
-  return async (req: AuthenticatedRequest, res: VercelResponse) => {
+  return async (req: AuthenticatedRequest, res: Response) => {
     try {
       const token = extractToken(req.headers.authorization as string);
 
@@ -41,7 +41,7 @@ export function authenticate(
  * Handle CORS
  */
 export function cors(handler: Function) {
-  return async (req: VercelRequest, res: VercelResponse) => {
+  return async (req: Request, res: Response) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader(
       'Access-Control-Allow-Methods',

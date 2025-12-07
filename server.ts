@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { verifyToken, extractToken } from './api/utils/auth';
+import { ensureDatabaseInitialized } from './api/db';
 import loginHandler from './api/auth/login';
 import registerHandler from './api/auth/register';
 import meHandler from './api/auth/me';
@@ -102,14 +103,25 @@ app.get('*', (req: Request, res: Response) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${NODE_ENV}`);
   console.log(`🗄️  Database URL configured: ${process.env.DATABASE_URL || process.env.POSTGRES_URL ? 'Yes' : 'No'}`);
+
+  // Initialize database on startup
+  try {
+    await ensureDatabaseInitialized();
+  } catch (error) {
+    console.error('⚠️  Failed to initialize database:', error);
+    // Continue running even if DB init fails - the app can still serve the frontend
+  }
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
-  process.exit(0);
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
