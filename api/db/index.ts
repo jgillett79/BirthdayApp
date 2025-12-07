@@ -1,8 +1,15 @@
 import { Pool, QueryResult } from 'pg';
 
 // Create a connection pool
+// Support both POSTGRES_URL (Vercel) and DATABASE_URL (Railway)
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.warn('⚠️  No database URL configured. Set POSTGRES_URL or DATABASE_URL environment variable.');
+}
+
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+  connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 });
 
