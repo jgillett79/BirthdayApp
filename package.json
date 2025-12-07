@@ -10,6 +10,7 @@
     "build": "npm run build:client",
     "build:client": "cd client && npm run build",
     "install:all": "npm install && cd client && npm install",
+    "postinstall": "cd client && npm ci",
     "start": "node -r ts-node/register server.ts",
     "prisma:migrate": "echo 'Prisma migrations handled by schema initialization'"
   },
