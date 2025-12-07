@@ -29,6 +29,14 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// API Routes - Return 501 Not Implemented for now
+app.all('/api/*', (req: Request, res: Response) => {
+  res.status(501).json({
+    success: false,
+    error: 'API endpoints are not yet implemented on Railway. Please use the web interface or mobile app.',
+  });
+});
+
 // Serve React static files
 const clientDist = path.join(__dirname, 'client', 'dist');
 app.use(express.static(clientDist));
