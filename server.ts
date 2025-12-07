@@ -45,7 +45,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    const payload = verifyToken(token);
+    const payload = verifyToken(token) as any;
     (req as any).userId = payload.userId || payload.id;
     (req as any).userEmail = payload.email;
 
