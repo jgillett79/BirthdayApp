@@ -1,219 +1,186 @@
-# 🎂 BirthdayApp
+# Birthday Reminder App
 
-A modern, family-friendly birthday and anniversary tracking application with AI-powered gift suggestions.
+A family-focused birthday and anniversary reminder app for iOS and Android.
 
-## Features
+## Overview
 
-- 🎉 **Track Birthdays & Anniversaries** - Never forget an important date
-- 👨‍👩‍👧‍👦 **Family Member Management** - Organize events by family members
-- 🔔 **Smart Notifications** - Configurable reminders for upcoming events
-- 🎁 **AI Gift Suggestions** - Get personalized gift ideas powered by AI
-- 🌍 **Global Ready** - Built with security and GDPR compliance in mind
-- 📱 **Responsive Design** - Works beautifully on desktop and mobile
-- 🚀 **Ready for iOS** - Architecture supports future React Native app
+This is a **complete redesign** of the Birthday App, now built as a native mobile application using Flutter with a Node.js backend.
 
-## Tech Stack
+### Key Features
 
-**Frontend:**
-- React 18 with TypeScript
-- Vite for fast development
-- TailwindCSS for styling
-- React Query for data fetching
-- React Router for navigation
+- **15-second entry** - Add a birthday in under 15 seconds
+- **Person Anchors** - Know instantly "whose friend is Mia?" (Emily's friend)
+- **Household sharing** - Both parents see the same list, real-time sync
+- **Yearly event tracking** - Party dates and gift tracking that resets each year
+- **Reliable notifications** - Never miss a birthday
+- **Offline-first** - Works without internet, syncs when back online
 
-**Backend:**
-- Vercel Serverless Functions
-- PostgreSQL (Vercel Postgres)
-- JWT Authentication
-- bcrypt for password hashing
+## Architecture
 
-**Deployment:**
-- Vercel (Frontend + API)
-- Vercel Postgres (Database)
+### Mobile App (Flutter)
+- **Location:** `/app`
+- **Platform:** iOS & Android
+- **State Management:** BLoC pattern
+- **Local Database:** SQLite with Drift (offline-first)
+- **Auth:** Firebase Auth (Apple Sign-In, Google Sign-In)
+
+### Backend (Node.js)
+- **Location:** `/backend`
+- **Framework:** Express.js
+- **Database:** PostgreSQL with Prisma ORM
+- **Deployment:** Railway
+- **Authentication:** Firebase Admin SDK
+- **Notifications:** Firebase Cloud Messaging
+
+## Project Structure
+
+```
+birthday-app/
+├── app/                    # Flutter mobile app
+│   ├── lib/
+│   │   ├── core/          # Constants, theme, utilities
+│   │   ├── data/          # Models, repositories, local DB
+│   │   ├── domain/        # Business logic services
+│   │   └── presentation/  # UI (BLoCs, screens, widgets)
+│   └── test/              # Tests (unit, widget, integration)
+│
+├── backend/               # Node.js API server
+│   ├── src/
+│   │   ├── config/       # Environment, database, Firebase
+│   │   ├── middleware/   # Auth, error handling
+│   │   ├── routes/       # API endpoints
+│   │   ├── services/     # Business logic
+│   │   └── utils/        # Helpers (date utils, etc.)
+│   ├── prisma/           # Database schema & migrations
+│   └── tests/            # Tests (unit, integration)
+│
+├── design/               # Product specifications
+│   ├── SPEC.md          # Product requirements
+│   ├── ARCHITECTURE.md  # Technical architecture
+│   ├── TESTING.md       # Testing strategy
+│   └── CLAUDE_CODE.md   # Setup instructions
+│
+└── old-webapp/          # Archived web app (previous version)
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- A Vercel account
-- A Vercel Postgres database (created through Vercel dashboard)
+- **Node.js 20+**
+- **Flutter 3.x**
+- **PostgreSQL** (or use Railway's hosted database)
+- **Firebase account** (for auth & notifications)
 
-### Installation
+### Backend Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd BirthdayApp
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm run install:all
-   ```
-
-3. **Set up environment variables**
-
-   Create `.env` in the root directory:
-   ```bash
-   cp .env.example .env
-   ```
-
-   Create `.env` in the client directory:
-   ```bash
-   cp client/.env.example client/.env
-   ```
-
-   Update the `.env` file with your Vercel Postgres credentials (available in your Vercel dashboard).
-
-4. **Initialize the database**
-
-   Run the schema.sql file in your Vercel Postgres dashboard or use a PostgreSQL client:
-   ```bash
-   psql $POSTGRES_URL -f api/db/schema.sql
-   ```
-
-5. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-   This will start:
-   - Frontend on http://localhost:3000
-   - API on http://localhost:3001
-
-## Deployment to Vercel
-
-### 1. Install Vercel CLI
 ```bash
-npm i -g vercel
+cd backend
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your credentials
+
+# Generate Prisma client
+npm run prisma:generate
+
+# Run database migrations
+npm run prisma:migrate
+
+# Start development server
+npm run dev
 ```
 
-### 2. Login to Vercel
+The backend will be running at `http://localhost:3000`
+
+### Flutter App Setup
+
 ```bash
-vercel login
+cd app
+
+# Install dependencies
+flutter pub get
+
+# Generate code (for Drift database)
+flutter pub run build_runner build
+
+# Run on iOS simulator
+flutter run -d iOS
+
+# Run on Android emulator
+flutter run -d Android
 ```
 
-### 3. Link your project
+## Documentation
+
+See the `/design` folder for comprehensive documentation:
+
+- **[SPEC.md](design/SPEC.md)** - Complete product specification
+- **[ARCHITECTURE.md](design/ARCHITECTURE.md)** - Technical architecture details
+- **[TESTING.md](design/TESTING.md)** - Testing strategy
+- **[CLAUDE_CODE.md](design/CLAUDE_CODE.md)** - Setup with Claude Code
+
+## Development Status
+
+🚧 **Currently in active development** - Complete redesign in progress
+
+### Completed
+- ✅ Project structure created
+- ✅ Backend foundation (Express, Prisma, Firebase)
+- ✅ Database schema designed
+- ✅ Flutter app scaffolding
+- ✅ Core data models
+
+### In Progress
+- 🔄 API endpoints implementation
+- 🔄 Flutter screens and UI
+- 🔄 Offline sync system
+
+### Upcoming
+- ⏳ Authentication flows
+- ⏳ Notification system
+- ⏳ Testing suite
+- ⏳ Deployment setup
+
+## Testing
+
+### Backend Tests
 ```bash
-vercel link
+cd backend
+npm test                 # Run all tests
+npm run test:coverage    # With coverage
+npm run test:integration # Integration tests only
 ```
 
-### 4. Set up Vercel Postgres
-
-1. Go to your Vercel Dashboard
-2. Navigate to Storage → Create Database → Postgres
-3. Once created, go to the `.env.local` tab and copy all environment variables
-4. Add them to your Vercel project:
-   ```bash
-   vercel env add POSTGRES_URL
-   vercel env add POSTGRES_PRISMA_URL
-   vercel env add JWT_SECRET
-   # ... add all other variables
-   ```
-
-### 5. Initialize the database
-
-1. Go to your Vercel Postgres dashboard
-2. Click on "Query" tab
-3. Copy the contents of `api/db/schema.sql` and run it
-
-### 6. Deploy
+### Flutter Tests
 ```bash
-vercel --prod
+cd app
+flutter test             # Unit & widget tests
+flutter test --coverage  # With coverage
+flutter test integration_test/  # E2E tests
 ```
 
-Your app is now live! 🎉
+## Deployment
 
-## Environment Variables
-
-### Root `.env` (Backend)
-- `POSTGRES_URL` - PostgreSQL connection string
-- `JWT_SECRET` - Secret key for JWT tokens (generate a random string)
-- `OPENAI_API_KEY` (optional) - For AI gift suggestions
-- `ANTHROPIC_API_KEY` (optional) - Alternative for AI gift suggestions
-
-### Client `.env` (Frontend)
-- `VITE_API_URL` - API endpoint (use `/api` for production)
-
-## Project Structure
-
-```
-BirthdayApp/
-├── api/                      # Backend serverless functions
-│   ├── auth/                 # Authentication endpoints
-│   ├── events/               # Event management endpoints
-│   ├── gifts/                # Gift ideas and suggestions
-│   ├── family-members/       # Family member endpoints
-│   ├── db/                   # Database schema and utilities
-│   ├── middleware/           # Auth middleware
-│   └── utils/                # Utility functions
-├── client/                   # Frontend React app
-│   ├── src/
-│   │   ├── components/       # React components
-│   │   ├── pages/            # Page components
-│   │   ├── services/         # API service layer
-│   │   ├── contexts/         # React contexts
-│   │   └── types/            # TypeScript types
-│   └── public/               # Static assets
-├── shared/                   # Shared types between frontend and backend
-└── vercel.json              # Vercel configuration
+### Backend (Railway)
+```bash
+cd backend
+railway up
 ```
 
-## API Endpoints
+### Mobile App
+- **iOS:** Submit to App Store via Xcode
+- **Android:** Submit to Google Play via Android Studio
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Get current user
-
-### Events
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create event
-- `GET /api/events/:id` - Get event by ID
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
-- `GET /api/events/upcoming` - Get upcoming events
-
-### Family Members
-- `GET /api/family-members` - Get all family members
-- `POST /api/family-members` - Create family member
-
-### Gifts
-- `GET /api/gifts` - Get gift ideas
-- `POST /api/gifts` - Create gift idea
-- `POST /api/gifts/suggestions` - Get AI gift suggestions
-
-## Security Features
-
-- Password hashing with bcrypt
-- JWT token-based authentication
-- SQL injection prevention
-- CORS configuration
-- Input validation
-- Secure environment variable handling
-
-## Future Enhancements
-
-- [ ] iOS app with React Native
-- [ ] Email/Push notifications
-- [ ] Calendar integration (Google Calendar, Apple Calendar)
-- [ ] Gift purchase tracking
-- [ ] Multi-user family accounts
-- [ ] Photo uploads for events
-- [ ] Recurring event reminders
-- [ ] Gift history tracking
-- [ ] Social sharing features
-- [ ] Multiple languages support
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+See [ARCHITECTURE.md](design/ARCHITECTURE.md) for detailed deployment instructions.
 
 ## License
 
-ISC
+Private project - All rights reserved
 
-## Support
+---
 
-For issues and questions, please open an issue on GitHub.
+Built with ❤️ using Flutter & Node.js

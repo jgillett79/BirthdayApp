@@ -1,0 +1,151 @@
+// Birthday Reminder App - Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  firebaseUid   String    @unique
+  email         String?
+  name          String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  householdMemberships HouseholdMember[]
+
+  @@map("users")
+}
+
+model Household {
+  id          String    @id @default(uuid())
+  name        String?
+  inviteCode  String    @unique @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  members     HouseholdMember[]
+  people      Person[]
+
+  @@map("households")
+}
+
+model HouseholdMember {
+  id          String      @id @default(uuid())
+  householdId String
+  userId      String?     // null for children (non-account holders)
+  name        String
+  role        MemberRole
+  isOwner     Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id])
+
+  // People anchored to this member
+  anchoredPeople PersonAnchor[]
+
+  @@unique([householdId, userId])
+  @@map("household_members")
+}
+
+enum MemberRole {
+  ADULT
+  CHILD
+}
+
+model Person {
+  id              String    @id @default(uuid())
+  householdId     String
+  name            String
+  birthdayMonth   Int       // 1-12
+  birthdayDay     Int       // 1-31
+  birthYear       Int?      // nullable for unknown
+  relationshipType RelationshipType?
+  notes           String?
+  isDeceased      Boolean   @default(false)
+  leapYearPref    LeapYearPreference @default(FEB_28)
+
+  // Reminder overrides (null = use defaults)
+  reminderDays    Int[]     // e.g., [7, 1, 0] for 7 days, 1 day, day-of
+  reminderTime    String?   // e.g., "08:00"
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdByUserId String?
+
+  household       Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  anchors         PersonAnchor[]
+  yearlyEvents    YearlyEvent[]
+
+  @@map("people")
+}
+
+model PersonAnchor {
+  id                String          @id @default(uuid())
+  personId          String
+  householdMemberId String
+
+  person            Person          @relation(fields: [personId], references: [id], onDelete: Cascade)
+  householdMember   HouseholdMember @relation(fields: [householdMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, householdMemberId])
+  @@map("person_anchors")
+}
+
+enum RelationshipType {
+  FAMILY
+  FRIEND
+  SCHOOL
+  WORK
+  NEIGHBOUR
+  OTHER
+}
+
+enum LeapYearPreference {
+  FEB_28
+  MARCH_1
+  LEAP_ONLY
+}
+
+model YearlyEvent {
+  id            String    @id @default(uuid())
+  personId      String
+  year          Int
+
+  partyDate     DateTime?
+  partyTime     String?   // "14:00"
+  partyLocation String?
+
+  giftBought    Boolean   @default(false)
+  giftDescription String?
+  rsvpSent      Boolean   @default(false)
+  cardSent      Boolean   @default(false)
+  notes         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  person        Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, year])
+  @@map("yearly_events")
+}
+
+model NotificationLog {
+  id            String    @id @default(uuid())
+  userId        String
+  personId      String
+  year          Int
+  daysBefore    Int       // 7, 1, 0 etc.
+  sentAt        DateTime  @default(now())
+  fcmMessageId  String?
+
+  @@unique([userId, personId, year, daysBefore])
+  @@map("notification_logs")
+}
