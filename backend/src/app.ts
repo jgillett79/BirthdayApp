@@ -3,6 +3,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { environment } from './config/environment';
 import { errorHandler } from './middleware/errorHandler';
+import { authenticateToken } from './middleware/auth';
+
+// Import routes
+import authRoutes from './routes/auth.routes';
+import householdRoutes from './routes/household.routes';
+import peopleRoutes from './routes/people.routes';
+import yearlyEventsRoutes from './routes/yearlyEvents.routes';
+import syncRoutes from './routes/sync.routes';
 
 const app = express();
 
@@ -24,11 +32,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API routes will be added here
-// app.use('/api/auth', authRoutes);
-// app.use('/api/household', authenticateToken, householdRoutes);
-// app.use('/api/people', authenticateToken, peopleRoutes);
-// app.use('/api/sync', authenticateToken, syncRoutes);
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/household', authenticateToken, householdRoutes);
+app.use('/api/people', authenticateToken, peopleRoutes);
+app.use('/api/yearly-events', authenticateToken, yearlyEventsRoutes);
+app.use('/api/sync', authenticateToken, syncRoutes);
 
 // 404 handler
 app.use((req, res) => {

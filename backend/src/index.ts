@@ -2,6 +2,7 @@ import app from './app';
 import { environment, validateEnvironment } from './config/environment';
 import { connectDatabase } from './config/database';
 import { initializeFirebase } from './config/firebase';
+import { startNotificationScheduler } from './jobs/notificationScheduler';
 
 async function startServer() {
   try {
@@ -15,6 +16,9 @@ async function startServer() {
 
     // Connect to database
     await connectDatabase();
+
+    // Start notification scheduler
+    startNotificationScheduler();
 
     // Start Express server
     app.listen(environment.port, () => {
