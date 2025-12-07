@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'presentation/screens/home/home_screen.dart';
 
 class BirthdayApp extends StatelessWidget {
   const BirthdayApp({super.key});
@@ -15,6 +16,12 @@ class BirthdayApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         useMaterial3: true,
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -22,28 +29,15 @@ class BirthdayApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
-      ),
-      themeMode: ThemeMode.system,
-      home: const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.cake, size: 100, color: Colors.purple),
-              SizedBox(height: 20),
-              Text(
-                'Birthday Reminder App',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Complete redesign in progress...',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ],
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
+      themeMode: ThemeMode.system,
+      home: const HomeScreen(),
     );
   }
 }
