@@ -11,6 +11,7 @@ export const environment = {
     projectId: process.env.FIREBASE_PROJECT_ID || '',
     privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n') || '',
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+    enabled: process.env.ENABLE_FIREBASE === 'true',
   },
 
   corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
@@ -21,12 +22,12 @@ export const environment = {
 
 // Validate required environment variables
 export function validateEnvironment() {
-  const required = [
-    'DATABASE_URL',
-    'FIREBASE_PROJECT_ID',
-    'FIREBASE_PRIVATE_KEY',
-    'FIREBASE_CLIENT_EMAIL',
-  ];
+  const required = ['DATABASE_URL'];
+
+  // Only require Firebase variables if Firebase is enabled
+  if (environment.firebase.enabled) {
+    required.push('FIREBASE_PROJECT_ID', 'FIREBASE_PRIVATE_KEY', 'FIREBASE_CLIENT_EMAIL');
+  }
 
   const missing = required.filter(key => !process.env[key]);
 

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { getFirebaseAuth } from '../config/firebase';
+import { isFirebaseEnabled, getFirebaseAuth } from '../config/firebase';
 import { prisma } from '../config/database';
+import { environment } from '../config/environment';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -18,6 +19,57 @@ export async function authenticateToken(
   next: NextFunction
 ) {
   try {
+    // If Firebase is disabled, use development mode with a test user
+    if (!isFirebaseEnabled()) {
+      console.log('⚠️  Auth bypassed - Firebase disabled (development mode)');
+
+      // Get or create a test user for development
+      let testUser = await prisma.user.findFirst({
+        where: { email: 'test@example.com' },
+        include: {
+          householdMemberships: {
+            include: {
+              household: true,
+            },
+          },
+        },
+      });
+
+      // Create test user if doesn't exist
+      if (!testUser) {
+        testUser = await prisma.user.create({
+          data: {
+            firebaseUid: 'test-user-dev',
+            email: 'test@example.com',
+            name: 'Test User',
+          },
+          include: {
+            householdMemberships: {
+              include: {
+                household: true,
+              },
+            },
+          },
+        });
+        console.log('✅ Created test user for development');
+      }
+
+      req.user = {
+        id: testUser.id,
+        firebaseUid: testUser.firebaseUid,
+        email: testUser.email,
+        name: testUser.name,
+      };
+
+      // Attach household ID if user belongs to one
+      if (testUser.householdMemberships.length > 0) {
+        req.householdId = testUser.householdMemberships[0].householdId;
+      }
+
+      return next();
+    }
+
+    // Normal Firebase authentication when enabled
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 

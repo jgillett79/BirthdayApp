@@ -10,20 +10,24 @@ async function startServer() {
     validateEnvironment();
     console.log('✅ Environment variables validated');
 
-    // Initialize Firebase
+    // Initialize Firebase (optional)
     initializeFirebase();
-    console.log('✅ Firebase initialized');
 
     // Connect to database
     await connectDatabase();
 
-    // Start notification scheduler
-    startNotificationScheduler();
+    // Start notification scheduler (only if Firebase is enabled)
+    if (environment.firebase.enabled) {
+      startNotificationScheduler();
+    } else {
+      console.log('⚠️  Notification scheduler disabled (Firebase not enabled)');
+    }
 
     // Start Express server
     app.listen(environment.port, () => {
       console.log(`🚀 Server running on port ${environment.port}`);
       console.log(`📝 Environment: ${environment.nodeEnv}`);
+      console.log(`🔥 Firebase: ${environment.firebase.enabled ? 'Enabled' : 'Disabled'}`);
       console.log(`🏥 Health check: http://localhost:${environment.port}/health`);
     });
   } catch (error) {
