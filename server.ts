@@ -83,15 +83,25 @@ app.post('/api/auth/login', vercelToExpress(loginHandler));
 app.post('/api/auth/register', vercelToExpress(registerHandler));
 app.get('/api/auth/me', authMiddleware, vercelToExpress(meHandler));
 
+// Events routes - support all CRUD operations
 app.get('/api/events', authMiddleware, vercelToExpress(eventsHandler));
+app.post('/api/events', authMiddleware, vercelToExpress(eventsHandler));
+app.get('/api/events/:id', authMiddleware, vercelToExpress(eventsHandler));
+app.put('/api/events/:id', authMiddleware, vercelToExpress(eventsHandler));
+app.delete('/api/events/:id', authMiddleware, vercelToExpress(eventsHandler));
 app.get('/api/events/upcoming', authMiddleware, vercelToExpress(upcomingHandler));
 
+// Family members routes
 app.get('/api/family-members', authMiddleware, vercelToExpress(familyMembersHandler));
 app.post('/api/family-members', authMiddleware, vercelToExpress(familyMembersHandler));
 
+// Gifts routes - support all CRUD operations
 app.get('/api/gifts', authMiddleware, vercelToExpress(giftsHandler));
 app.post('/api/gifts', authMiddleware, vercelToExpress(giftsHandler));
-app.get('/api/gifts/suggestions', authMiddleware, vercelToExpress(suggestionsHandler));
+app.get('/api/gifts/:id', authMiddleware, vercelToExpress(giftsHandler));
+app.put('/api/gifts/:id', authMiddleware, vercelToExpress(giftsHandler));
+app.delete('/api/gifts/:id', authMiddleware, vercelToExpress(giftsHandler));
+app.post('/api/gifts/suggestions', authMiddleware, vercelToExpress(suggestionsHandler));
 
 // Serve React static files
 const clientDist = path.join(__dirname, 'client', 'dist');
