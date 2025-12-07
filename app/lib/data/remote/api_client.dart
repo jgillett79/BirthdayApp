@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
+import '../../core/config/api_config.dart';
 
 class ApiClient {
   final Dio _dio;
   final String baseUrl;
 
+  /// Create API client with custom base URL
   ApiClient({
     required this.baseUrl,
     String? authToken,
@@ -23,6 +25,18 @@ class ApiClient {
       responseBody: true,
       error: true,
     ));
+  }
+
+  /// Create API client using the configured backend URL from ApiConfig
+  ///
+  /// This factory constructor automatically uses the correct URL based on environment:
+  /// - Production builds use the Railway URL
+  /// - Debug builds use localhost
+  factory ApiClient.fromConfig({String? authToken}) {
+    return ApiClient(
+      baseUrl: ApiConfig.apiUrl,
+      authToken: authToken,
+    );
   }
 
   // Auth endpoints
